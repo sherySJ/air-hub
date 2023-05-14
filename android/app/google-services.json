@@ -29,6 +29,13 @@
             {
               "client_id": "535801431601-mj43l6f7286a2ghit0maa37cj3cjj098.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "535801431601-bmvcjin3jo360amljaq1bbnia76ikcfh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.airHub"
+              }
             }
           ]
         }
