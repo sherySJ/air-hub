@@ -49,6 +49,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '535801431601',
     projectId: 'air-hub-4a86a',
     authDomain: 'air-hub-4a86a.firebaseapp.com',
+    databaseURL: 'https://air-hub-4a86a-default-rtdb.firebaseio.com',
     storageBucket: 'air-hub-4a86a.appspot.com',
     measurementId: 'G-E2Z1W606BV',
   );
@@ -58,6 +59,7 @@ class DefaultFirebaseOptions {
     appId: '1:535801431601:android:8729a6af72bc2ae324f710',
     messagingSenderId: '535801431601',
     projectId: 'air-hub-4a86a',
+    databaseURL: 'https://air-hub-4a86a-default-rtdb.firebaseio.com',
     storageBucket: 'air-hub-4a86a.appspot.com',
   );
 
@@ -66,6 +68,7 @@ class DefaultFirebaseOptions {
     appId: '1:535801431601:ios:fe0e1f8ae93c490524f710',
     messagingSenderId: '535801431601',
     projectId: 'air-hub-4a86a',
+    databaseURL: 'https://air-hub-4a86a-default-rtdb.firebaseio.com',
     storageBucket: 'air-hub-4a86a.appspot.com',
     iosClientId: '535801431601-bmvcjin3jo360amljaq1bbnia76ikcfh.apps.googleusercontent.com',
     iosBundleId: 'com.example.airHub',
@@ -73,11 +76,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyBHcf59azl2d0C1TAa9DR4l7v5XYoz0Gmw',
-    appId: '1:535801431601:ios:fe0e1f8ae93c490524f710',
+    appId: '1:535801431601:ios:1e200b2ec553c95b24f710',
     messagingSenderId: '535801431601',
     projectId: 'air-hub-4a86a',
+    databaseURL: 'https://air-hub-4a86a-default-rtdb.firebaseio.com',
     storageBucket: 'air-hub-4a86a.appspot.com',
-    iosClientId: '535801431601-bmvcjin3jo360amljaq1bbnia76ikcfh.apps.googleusercontent.com',
-    iosBundleId: 'com.example.airHub',
+    iosClientId: '535801431601-tk2ng99eo4pg81en0mphkg32fpjd6tgf.apps.googleusercontent.com',
+    iosBundleId: 'com.example.airHub.RunnerTests',
   );
 }

@@ -1,4 +1,3 @@
-import 'package:air_hub/manage_teacher.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -61,18 +60,11 @@ class _TeacherPageState extends State<TeacherPage> {
                       child: Icon(Icons.person),
                       alignment: PlaceholderAlignment.middle,
                     ),
-                    const TextSpan(
-                      text: "Teacher's Name: ",
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                     TextSpan(
                       text: _teacherName,
                       style: const TextStyle(
                         fontSize: 18.0,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -86,14 +78,14 @@ class _TeacherPageState extends State<TeacherPage> {
                       text: 'Faculty ID: ',
                       style: TextStyle(
                         fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF8F8F8F),
                       ),
                     ),
                     TextSpan(
                       text: _facultyId,
                       style: const TextStyle(
                         fontSize: 16.0,
-                        fontWeight: FontWeight.normal,
+                        color: Color(0xFF8F8F8F),
                       ),
                     ),
                   ],
@@ -103,17 +95,17 @@ class _TeacherPageState extends State<TeacherPage> {
                 TextSpan(
                   children: [
                     const TextSpan(
-                      text: 'Phone#: ',
+                      text: 'Phone# ',
                       style: TextStyle(
                         fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF8F8F8F),
                       ),
                     ),
                     TextSpan(
                       text: _phoneNo.toString(),
                       style: const TextStyle(
                         fontSize: 16.0,
-                        fontWeight: FontWeight.normal,
+                        color: Color(0xFF8F8F8F),
                       ),
                     ),
                   ],
@@ -126,14 +118,14 @@ class _TeacherPageState extends State<TeacherPage> {
                       text: 'Email: ',
                       style: TextStyle(
                         fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF8F8F8F),
                       ),
                     ),
                     TextSpan(
                       text: _email,
                       style: const TextStyle(
                         fontSize: 16.0,
-                        fontWeight: FontWeight.normal,
+                        color: Color(0xFF8F8F8F),
                       ),
                     ),
                   ],
@@ -169,7 +161,7 @@ class _TeacherPageState extends State<TeacherPage> {
                           itemCount: _numCoursesTaught,
                           itemBuilder: (context, index) {
                             final subject = 'Subject ${index + 1}';
-                
+
                             return ListTile(
                               title: Text(subject),
                             );
@@ -213,12 +205,7 @@ class _TeacherPageState extends State<TeacherPage> {
                             right: 0.0,
                             child: FloatingActionButton(
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const ManagePage(),
-                                  ),
-                                );
+                                Navigator.pushNamed(context, '/manager');
                               },
                               child: Image.asset(
                                 'assets/manage_button.png',

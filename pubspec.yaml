@@ -1,18 +1,44 @@
 name: air_hub
 description: A new Flutter project.
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: '>=2.19.6 <3.0.0'
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   cloud_firestore: ^4.7.0
   firebase_auth: ^4.6.0
   firebase_core: ^2.12.0
+  auto_size_text: 3.0.0
+  cached_network_image: 3.2.1
+  flutter_animate: 4.1.1+1
+  flutter_cache_manager: 3.3.0
+  font_awesome_flutter: 10.1.0
+  from_css_color: 2.0.0
+  google_fonts: 4.0.3
+  intl: 0.17.0
+  json_path: 0.4.1
+  page_transition: 2.0.4
+  path_provider: 2.0.14
+  path_provider_android: 2.0.25
+  path_provider_foundation: 2.2.2
+  path_provider_platform_interface: 2.0.6
+  provider: 6.0.4
+  shared_preferences: 2.0.15
+  shared_preferences_android: 2.1.0
+  shared_preferences_ios: 2.1.1
+  shared_preferences_platform_interface: 2.2.0
+  shared_preferences_web: 2.1.0
+  sqflite: 2.2.6
+  timeago: 3.2.2
+  url_launcher: 6.1.10
+  url_launcher_android: 6.0.27
+  url_launcher_ios: 6.1.4
+  url_launcher_platform_interface: 2.1.2
   flutter:
     sdk: flutter
-  flutter_svg: ^2.0.5
+    #
 
 dev_dependencies:
   flutter_test:
@@ -21,27 +47,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  fonts:
-    - family: Roboto
-      fonts:
-        - asset: assets/fonts/Roboto-Medium.ttf
-          weight: 500
-    - family: Poppins
-      fonts:
-        - asset: assets/fonts/Poppins-SemiBold.ttf
-          weight: 500
-        - asset: assets/fonts/Poppins-Regular.ttf
-          weight: 400
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter-SemiBold.ttf
-          weight: 500
-        - asset: assets/fonts/Inter-Medium.ttf
-          weight: 400
-    - family: SourceCodePro
-      fonts:
-        - asset: assets/fonts/SourceCodePro-SemiBold.ttf
-          weight: 500
-        - asset: assets/fonts/SourceCodePro-Regular.ttf
-          weight: 400
-          
+  assets:
+    - assets/manage_button.png

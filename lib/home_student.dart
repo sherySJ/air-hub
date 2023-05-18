@@ -13,6 +13,7 @@ class _StudentPageState extends State<StudentPage> {
   late String _studentName = '';
   late String _registrationNumber = '';
   late String _email = '';
+  late String _phone = '';
   late double _cgpa = 0.0;
   late int _numCourses = 0;
   List<Map<String, dynamic>> _courseList = [];
@@ -41,6 +42,7 @@ class _StudentPageState extends State<StudentPage> {
         _registrationNumber = studentSnapshot['registration_number'];
         _email = userSnapshot['email'];
         _cgpa = studentSnapshot['cgpa'];
+        _phone = studentSnapshot['phone'];
         _numCourses = studentSnapshot['courses'].length;
         _courseList = studentSnapshot['courses'];
       });
@@ -50,39 +52,82 @@ class _StudentPageState extends State<StudentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 100.0),
-              const Icon(
-                Icons.person,
-                size: 30.0,
+              const SizedBox(height: 40.0),
+              Row(
+                children: [
+                  const Icon(Icons.person),
+                  Text(
+                    _studentName,
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8.0),
-              Text(
-                _studentName,
-                style: const TextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Reg# ',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Color(0xFF8F8F8F),
+                    ),
+                  ),
+                  Text(
+                    _registrationNumber,
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      color: Color(0xFF8F8F8F),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8.0),
-              Text(
-                'Reg# $_registrationNumber',
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Phone# ',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Color(0xFF8F8F8F),
+                    ),
+                  ),
+                  Text(
+                    _phone.toString(),
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      color: Color(0xFF8F8F8F),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8.0),
-              Text(
-                'Email: $_email',
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Email: ',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Color(0xFF8F8F8F),
+                   
+                    ),
+                  ),
+                  Text(
+                    _email,
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24.0),
               Row(
@@ -97,11 +142,10 @@ class _StudentPageState extends State<StudentPage> {
                       alignment: Alignment.topLeft,
                       textStyle: const TextStyle(
                         fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8.0),
+                  const SizedBox(width: 24.0),
                   Expanded(
                     child: InfoCard(
                       title: 'Courses',
@@ -117,9 +161,9 @@ class _StudentPageState extends State<StudentPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 24.0),
               Container(
-                margin: const EdgeInsets.all(24),
+                // margin: const EdgeInsets.all(8),
                 decoration: const BoxDecoration(
                   color: Color(0xFFBECDFD),
                   borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -129,25 +173,21 @@ class _StudentPageState extends State<StudentPage> {
                   children: [
                     const Padding(
                       padding: EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Course List',
-                            style: TextStyle(
-                              fontSize: 18.0,
-                              fontWeight: FontWeight.bold,
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Course List',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 8.0),
-                          Text(
-                            'Subjects',
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                            SizedBox(height: 8.0),
+                          ],
+                        ),
                       ),
                     ),
                     SizedBox(
@@ -186,7 +226,8 @@ class InfoCard extends StatelessWidget {
   final Alignment alignment;
   final TextStyle textStyle;
 
-  const InfoCard({super.key, 
+  const InfoCard({
+    super.key,
     required this.title,
     required this.content,
     required this.backgroundColor,
@@ -197,43 +238,40 @@ class InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: GestureDetector(
-        onTap: () {},
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          height: 155,
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 30,
-                ),
-                overflow: TextOverflow.ellipsis,
+    return GestureDetector(
+      onTap: () {},
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        height: 155,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 30,
               ),
-              const SizedBox(height: 8.0),
-              Flexible(
-                child: Align(
-                  alignment: alignment,
-                  child: Text(
-                    content,
-                    style: textStyle,
-                    overflow: TextOverflow.clip,
-                  ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8.0),
+            Flexible(
+              child: Align(
+                alignment: alignment,
+                child: Text(
+                  content,
+                  style: textStyle,
+                  overflow: TextOverflow.clip,
                 ),
               ),
-              const Spacer(),
-            ],
-          ),
+            ),
+            const Spacer(),
+          ],
         ),
       ),
     );
