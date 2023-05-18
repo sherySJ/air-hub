@@ -260,7 +260,6 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              
                               ElevatedButton(
                                 onPressed: () {
                                   // Perform the update record action here
@@ -529,7 +528,6 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                       ),
                     ),
                   ),
-                
                 ],
               ),
             ],
