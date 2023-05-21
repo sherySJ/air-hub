@@ -11,12 +11,9 @@ class ManageTeacherPage extends StatefulWidget {
 }
 
 class _ManageTeacherPageState extends State<ManageTeacherPage> {
-  // final FirebaseAuth _auth = FirebaseAuth.instance;
-  // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  final String _teacherName = '';
-  final String _facultyId = '';
-  final int _phoneNo = 0;
+  String _teacherName = '';
+  String _facultyId = '';
+  String _phoneNo = '';
   String _email = '';
   late List<Subject> _subjectsList = [];
 
@@ -63,6 +60,20 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
     };
   }
 
+  late User? _currentUser;
+  late CollectionReference _studentsCollection;
+  late Stream<DocumentSnapshot<Map<String, dynamic>>> _userDocumentStream;
+  @override
+  void initState() {
+    super.initState();
+    _currentUser = FirebaseAuth.instance.currentUser;
+    _studentsCollection = FirebaseFirestore.instance.collection('teachers');
+    _userDocumentStream = _currentUser != null
+        ? _studentsCollection.doc(_currentUser!.uid).snapshots()
+            as Stream<DocumentSnapshot<Map<String, dynamic>>>
+        : const Stream<DocumentSnapshot<Map<String, dynamic>>>.empty();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,83 +84,135 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40.0),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    const WidgetSpan(
-                      child: Icon(Icons.person),
-                      alignment: PlaceholderAlignment.middle,
-                    ),
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: _userDocumentStream,
+                builder: (
+                  BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                      snapshot,
+                ) {
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    var userData = snapshot.data!.data();
+                    _teacherName = userData?['name'] ?? '';
+                  }
+                  return Text.rich(
                     TextSpan(
-                      text: _teacherName,
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      children: [
+                        const WidgetSpan(
+                          child: Icon(Icons.person),
+                          alignment: PlaceholderAlignment.middle,
+                        ),
+                        TextSpan(
+                          text: _teacherName,
+                          style: const TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
+              ),
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: _userDocumentStream,
+                builder: (
+                  BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                      snapshot,
+                ) {
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    var userData = snapshot.data!.data();
+                    _facultyId = userData?['id'] ?? '';
+                  }
+                  return Text.rich(
+                    TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'Faculty ID: ',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: Color(0xFF8F8F8F),
+                          ),
+                        ),
+                        TextSpan(
+                          text: _facultyId,
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            color: Color(0xFF8F8F8F),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 8.0),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    const TextSpan(
-                      text: 'Faculty ID: ',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        color: Color(0xFF8F8F8F),
-                      ),
-                    ),
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: _userDocumentStream,
+                builder: (
+                  BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                      snapshot,
+                ) {
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    var userData = snapshot.data!.data();
+                    _phoneNo = userData?['phone'] ?? '';
+                  }
+                  return Text.rich(
                     TextSpan(
-                      text: _facultyId,
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        color: Color(0xFF8F8F8F),
-                      ),
+                      children: [
+                        const TextSpan(
+                          text: 'Phone# ',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: Color(0xFF8F8F8F),
+                          ),
+                        ),
+                        TextSpan(
+                          text: _phoneNo.toString(),
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            color: Color(0xFF8F8F8F),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    const TextSpan(
-                      text: 'Phone# ',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        color: Color(0xFF8F8F8F),
-                      ),
-                    ),
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: _userDocumentStream,
+                builder: (
+                  BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                      snapshot,
+                ) {
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    var userData = snapshot.data!.data();
+                    _email = userData?['email'] ?? '';
+                  }
+                  return Text.rich(
                     TextSpan(
-                      text: _phoneNo.toString(),
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        color: Color(0xFF8F8F8F),
-                      ),
+                      children: [
+                        const TextSpan(
+                          text: 'Email: ',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: Color(0xFF8F8F8F),
+                          ),
+                        ),
+                        TextSpan(
+                          text: _email,
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            color: Color(0xFF8F8F8F),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    const TextSpan(
-                      text: 'Email: ',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        color: Color(0xFF8F8F8F),
-                      ),
-                    ),
-                    TextSpan(
-                      text: _email,
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        color: Color(0xFF8F8F8F),
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 24.0),
               const SizedBox(height: 16.0),
@@ -179,37 +242,35 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                       final studentData = await fetchStudentData(_email);
                       final List<Subject> subjectsList = [];
 
-                      if (studentData != null) {
-                        final List<Map<String, dynamic>> courses =
-                            studentData['courses'];
+                      final List<Map<String, dynamic>> courses =
+                          studentData['courses'];
 
-                        for (final course in courses) {
-                          final String subjectName = course['name'];
-                          final int quiz1 = course['quiz1'];
-                          final int quiz2 = course['quiz2'];
-                          final int quiz3 = course['quiz3'];
-                          final int assignment1 = course['assignment1'];
-                          final int assignment2 = course['assignment2'];
-                          final int assignment3 = course['assignment3'];
-                          final int midExam = course['midExam'];
-                          final int finalExam = course['finalExam'];
-                          final int project = course['project'];
+                      for (final course in courses) {
+                        final String subjectName = course['name'];
+                        final int quiz1 = course['quiz1'];
+                        final int quiz2 = course['quiz2'];
+                        final int quiz3 = course['quiz3'];
+                        final int assignment1 = course['assignment1'];
+                        final int assignment2 = course['assignment2'];
+                        final int assignment3 = course['assignment3'];
+                        final int midExam = course['midExam'];
+                        final int finalExam = course['finalExam'];
+                        final int project = course['project'];
 
-                          final Subject subject = Subject(
-                            name: subjectName,
-                            quiz1: quiz1,
-                            quiz2: quiz2,
-                            quiz3: quiz3,
-                            assignment1: assignment1,
-                            assignment2: assignment2,
-                            assignment3: assignment3,
-                            midExam: midExam,
-                            finalExam: finalExam,
-                            project: project,
-                          );
+                        final Subject subject = Subject(
+                          name: subjectName,
+                          quiz1: quiz1,
+                          quiz2: quiz2,
+                          quiz3: quiz3,
+                          assignment1: assignment1,
+                          assignment2: assignment2,
+                          assignment3: assignment3,
+                          midExam: midExam,
+                          finalExam: finalExam,
+                          project: project,
+                        );
 
-                          subjectsList.add(subject);
-                        }
+                        subjectsList.add(subject);
                       }
 
                       setState(() {
@@ -250,33 +311,12 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Result',
-                                style: TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  // Perform the update record action here
-                                  // This is just a placeholder
-                                  print('Record updated!');
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  shadowColor: Colors.transparent,
-                                  backgroundColor: const Color.fromRGBO(
-                                      66, 133, 244, 1), // Blue color
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                ),
-                                child: const Text('Update'),
-                              ),
-                            ],
+                          const Text(
+                            'Result',
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 8.0),
                           Expanded(

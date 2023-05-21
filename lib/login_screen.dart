@@ -1,50 +1,68 @@
-// ignore_for_file: use_build_context_synchronously, unused_field
+// ignore_for_file: avoid_print
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  @override
-  State<LoginPage> createState() => _LoginPageState();
+  Future<String?> emailLogin(String email, String password) async {
+    try {
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final String? uid = userCredential.user?.uid;
+      return uid;
+    } catch (error) {
+      print('Login error: $error');
+      return null;
+    }
+  }
 }
 
-class _LoginPageState extends State<LoginPage> {
+class LoginPage1 extends StatefulWidget {
+  const LoginPage1({Key? key}) : super(key: key);
+
+  @override
+  State<LoginPage1> createState() => _LoginPage1State();
+}
+
+class _LoginPage1State extends State<LoginPage1> {
   String _email = '';
   String _password = '';
-
   Future<void> _login() async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Choose User Type'),
-          content: const Text(
-              'Do you want to go to the Student or Teacher home page?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/student');
-              },
-              child: const Text('Student'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/teacher');
-              },
-              child: const Text('Teacher'),
-            ),
-          ],
-        );
-      },
-    );
+    try {
+      // Perform login and get the user's UID
+      String? uid = await AuthService().emailLogin(_email, _password);
+
+      // Check if the user's UID has a 'studID' field in the collection
+      final DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('students')
+          .doc(uid) // Use the UID of the authenticated user
+          .get();
+
+      if (snapshot.exists) {
+        Navigator.pushNamed(context, '/student');
+      } else {
+        Navigator.pushNamed(context, '/teacher');
+      }
+    } catch (error) {
+      print('Login error: $error');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 100,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -99,7 +117,6 @@ class _LoginPageState extends State<LoginPage> {
             ElevatedButton(
               onPressed: _login,
               style: ElevatedButton.styleFrom(
-                shadowColor: Colors.transparent,
                 backgroundColor:
                     const Color.fromRGBO(66, 133, 244, 1), // Blue color
                 shape: RoundedRectangleBorder(

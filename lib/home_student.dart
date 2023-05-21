@@ -1,52 +1,31 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers, unnecessary_import
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class StudentPage extends StatefulWidget {
-  const StudentPage({Key? key}) : super(key: key);
+class S extends StatefulWidget {
+  const S({super.key});
 
   @override
-  State<StudentPage> createState() => _StudentPageState();
+  State<S> createState() => _SState();
 }
 
-class _StudentPageState extends State<StudentPage> {
-  late String _studentName = '';
-  late String _registrationNumber = '';
-  late String _email = '';
-  late String _phone = '';
-  late double _cgpa = 0.0;
-  late int _numCourses = 0;
-  List<Map<String, dynamic>> _courseList = [];
+class _SState extends State<S> {
+  late User? _currentUser;
+  late CollectionReference _studentsCollection;
+  late Stream<DocumentSnapshot<Map<String, dynamic>>> _userDocumentStream;
 
   @override
   void initState() {
     super.initState();
-    _loadStudentData();
-  }
-
-  Future<void> _loadStudentData() async {
-    final User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final DocumentSnapshot studentSnapshot = await FirebaseFirestore.instance
-          .collection('students')
-          .doc(user.uid)
-          .get();
-
-      final DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      setState(() {
-        _studentName = studentSnapshot['name'];
-        _registrationNumber = studentSnapshot['registration_number'];
-        _email = userSnapshot['email'];
-        _cgpa = studentSnapshot['cgpa'];
-        _phone = studentSnapshot['phone'];
-        _numCourses = studentSnapshot['courses'].length;
-        _courseList = studentSnapshot['courses'];
-      });
-    }
+    _currentUser = FirebaseAuth.instance.currentUser;
+    _studentsCollection = FirebaseFirestore.instance.collection('students');
+    _userDocumentStream = _currentUser != null
+        ? _studentsCollection.doc(_currentUser!.uid).snapshots()
+            as Stream<DocumentSnapshot<Map<String, dynamic>>>
+        : const Stream<DocumentSnapshot<Map<String, dynamic>>>.empty();
   }
 
   @override
@@ -62,12 +41,26 @@ class _StudentPageState extends State<StudentPage> {
               Row(
                 children: [
                   const Icon(Icons.person),
-                  Text(
-                    _studentName,
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: _userDocumentStream,
+                    builder: (
+                      BuildContext context,
+                      AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                          snapshot,
+                    ) {
+                      String _studentName = '';
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        var userData = snapshot.data!.data();
+                        _studentName = userData?['name'] ?? 'A';
+                      }
+                      return Text(
+                        _studentName,
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -76,18 +69,32 @@ class _StudentPageState extends State<StudentPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Reg# ',
+                    'Reg#: ',
                     style: TextStyle(
                       fontSize: 16.0,
                       color: Color(0xFF8F8F8F),
                     ),
                   ),
-                  Text(
-                    _registrationNumber,
-                    style: const TextStyle(
-                      fontSize: 16.0,
-                      color: Color(0xFF8F8F8F),
-                    ),
+                  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: _userDocumentStream,
+                    builder: (
+                      BuildContext context,
+                      AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                          snapshot,
+                    ) {
+                      String _registrationNumber = '';
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        var userData = snapshot.data!.data();
+                        _registrationNumber = userData?['registration'] ?? '';
+                      }
+                      return Text(
+                        _registrationNumber,
+                        style: const TextStyle(
+                          fontSize: 16.0,
+                          color: Color(0xFF8F8F8F),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -95,18 +102,32 @@ class _StudentPageState extends State<StudentPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Phone# ',
+                    'Phone#: ',
                     style: TextStyle(
                       fontSize: 16.0,
                       color: Color(0xFF8F8F8F),
                     ),
                   ),
-                  Text(
-                    _phone.toString(),
-                    style: const TextStyle(
-                      fontSize: 16.0,
-                      color: Color(0xFF8F8F8F),
-                    ),
+                  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: _userDocumentStream,
+                    builder: (
+                      BuildContext context,
+                      AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                          snapshot,
+                    ) {
+                      String _phone = '';
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        var userData = snapshot.data!.data();
+                        _phone = userData?['phone'] ?? '';
+                      }
+                      return Text(
+                        _phone.toString(),
+                        style: const TextStyle(
+                          fontSize: 16.0,
+                          color: Color(0xFF8F8F8F),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -118,97 +139,186 @@ class _StudentPageState extends State<StudentPage> {
                     style: TextStyle(
                       fontSize: 16.0,
                       color: Color(0xFF8F8F8F),
-                   
                     ),
                   ),
-                  Text(
-                    _email,
-                    style: const TextStyle(
-                      fontSize: 16.0,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: InfoCard(
-                      title: 'CGPA',
-                      content: _cgpa.toStringAsFixed(2),
-                      backgroundColor: const Color(0xFFDCEEFE),
-                      textColor: const Color.fromARGB(255, 11, 55, 91),
-                      alignment: Alignment.topLeft,
-                      textStyle: const TextStyle(
-                        fontSize: 24.0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 24.0),
-                  Expanded(
-                    child: InfoCard(
-                      title: 'Courses',
-                      content: _numCourses.toString(),
-                      backgroundColor: const Color(0xFFFEE8DC),
-                      textColor: const Color.fromARGB(255, 123, 78, 11),
-                      alignment: Alignment.topLeft,
-                      textStyle: const TextStyle(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: _userDocumentStream,
+                    builder: (
+                      BuildContext context,
+                      AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                          snapshot,
+                    ) {
+                      String _email = '';
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        var userData = snapshot.data!.data();
+                        _email = userData?['email'] ?? '';
+                      }
+                      return Text(
+                        _email,
+                        style: const TextStyle(
+                          fontSize: 16.0,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
               const SizedBox(height: 24.0),
-              Container(
-                // margin: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFBECDFD),
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.all(12.0),
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Course List',
-                              style: TextStyle(
-                                fontSize: 18.0,
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: _userDocumentStream,
+                builder: (
+                  BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                      snapshot,
+                ) {
+                  String _cgpa = '';
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    var userData = snapshot.data!.data();
+                    _cgpa = userData?['cgpa'] ?? 0.0;
+                  }
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: InfoCard(
+                          title: 'CGPA',
+                          content: _cgpa, //.toStringAsFixed(2),
+                          backgroundColor: const Color(0xFFDCEEFE),
+                          textColor: const Color.fromARGB(255, 11, 55, 91),
+                          alignment: Alignment.topLeft,
+                          textStyle: const TextStyle(
+                            fontSize: 24.0,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 24.0),
+                      StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        stream: _userDocumentStream,
+                        builder: (
+                          BuildContext context,
+                          AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                              snapshot,
+                        ) {
+                          int _numCourses = 0;
+                          if (snapshot.hasData && snapshot.data!.exists) {
+                            var userData = snapshot.data!.data();
+                            List<Map<String, dynamic>> courses =
+                                List<Map<String, dynamic>>.from(
+                                    userData?['courses'] ?? []);
+                            _numCourses = courses.length;
+                          }
+                          return Expanded(
+                            child: InfoCard(
+                              title: 'Courses',
+                              content: _numCourses.toString(),
+                              backgroundColor: const Color(0xFFFEE8DC),
+                              textColor: const Color.fromARGB(255, 123, 78, 11),
+                              alignment: Alignment.topLeft,
+                              textStyle: const TextStyle(
+                                fontSize: 24.0,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: 8.0),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 200.0,
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: _courseList.length,
-                        itemBuilder: (context, index) {
-                          final subject = _courseList[index]['subject'];
-                          final grade = _courseList[index]['grade'];
-
-                          return ListTile(
-                            title: Text(subject),
-                            subtitle: Text('Grade: $grade'),
                           );
                         },
                       ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 24.0),
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: _userDocumentStream,
+                builder: (
+                  BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                      snapshot,
+                ) {
+                  List<Map<String, dynamic>> _courseList = [];
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    var userData = snapshot.data!.data();
+                    _courseList = List<Map<String, dynamic>>.from(
+                        userData?['courses'] ?? []);
+                  }
+                  return Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFBECDFD),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
                     ),
-                  ],
-                ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Course List',
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 8.0),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 200.0,
+                          child: StreamBuilder<
+                              DocumentSnapshot<Map<String, dynamic>>>(
+                            stream: _userDocumentStream,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              } else if (snapshot.hasError) {
+                                return Center(
+                                    child: Text('Error: ${snapshot.error}'));
+                              } else if (!snapshot.hasData ||
+                                  !snapshot.data!.exists) {
+                                return const Center(
+                                    child:
+                                        Text('No courses found for the user'));
+                              } else {
+                                Map<String, dynamic>? userData =
+                                    snapshot.data!.data();
+                                List<dynamic>? courses = userData?['courses'];
+                                if (courses == null || courses.isEmpty) {
+                                  return const Center(
+                                      child: Text(
+                                          'No courses found for the user'));
+                                } else {
+                                  return ListView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const AlwaysScrollableScrollPhysics(),
+                                    itemCount: _courseList.length,
+                                    itemBuilder: (context, index) {
+                                      final subject =
+                                          _courseList[index]['subject'];
+                                      final grade = _courseList[index]['grade'];
+
+                                      return ListTile(
+                                        title: Text(subject),
+                                        subtitle: Text('Grade: $grade'),
+                                      );
+                                    },
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ],
           ),
