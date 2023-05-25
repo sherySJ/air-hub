@@ -1,5 +1,7 @@
 // ignore_for_file: file_names
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,15 +24,16 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
   final TextEditingController _cgpaController = TextEditingController();
   final TextEditingController _registrationController = TextEditingController();
   final Map<String, String> courseGrades = {}; // Map to store course grades
-  final List<String> allCourses = [
-    'OOP',
-    'DSA',
-    'MC',
-    'Calculus',
-    'Discrete',
-    'Islamiat'
+  List<dynamic> allCourses = [
+    {'subject': 'Object Oriented Programming', 'isSelected': false},
+    {'subject': 'Data Structures & Algorithm', 'isSelected': false},
+    {'subject': 'Design Analysis of Algorithms', 'isSelected': false},
+    {'subject': 'Full Stack Web Development', 'isSelected': false},
+    {'subject': 'Mobile Computing', 'isSelected': false},
+    {'subject': 'Linear Algebra', 'isSelected': false},
+
   ];
-  final List<String> _selectedCourses = [];
+  final List<dynamic> _selectedCourses = [];
 
   bool _isStudent = true;
 
@@ -72,7 +75,7 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
         email: email,
         password: password,
       );
-
+      log(userCredential.toString());
       String uid = userCredential.user!.uid;
 
       if (_isStudent) {
@@ -110,6 +113,13 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
     String studentCgpa = _cgpaController.text;
     String studentRegistration = _registrationController.text;
 
+    // _selectedCourses
+    for (var course in allCourses) {
+      if (course['isSelected']) {
+        _selectedCourses.add({'subject': course['subject'], 'grade': ''});
+      }
+    }
+    log(_selectedCourses.toString());
     Map<String, dynamic> studentData = {
       'id': studentId,
       'name': studentName,
@@ -117,12 +127,13 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
       'cgpa': studentCgpa,
       'registration': studentRegistration,
       'courses': _selectedCourses,
-      'grades': courseGrades, // Include the grades in the student data
+      // 'grades': courseGrades, // Include the grades in the student data
+      'email': _emailController.text,
     };
 
     await FirebaseFirestore.instance
         .collection('students')
-        .doc(uid)
+        .doc(_emailController.text)
         .set(studentData);
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -130,18 +141,63 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
         content: Text('Student account created successfully!'),
       ),
     );
-    
   }
 
-  void _createTeacherAccount(String uid) {
+  Future<void> _createTeacherAccount(String uid) async {
     // Implement teacher account creation logic here
+    String email = _emailController.text;
+    String teacherId = _idController.text;
+    String teacherName = _nameController.text;
+    String teacherPhone = _phoneController.text;
+
+    for (var course in allCourses) {
+      if (course['isSelected']) {
+        _selectedCourses.add({'class': course['subject'], 'section': ''});
+      }
+    }
+
+    Map<String, dynamic> teacherData = {
+      'id': teacherId,
+      'name': teacherName,
+      'phone': teacherPhone,
+      'email': email,
+      'courses': _selectedCourses,
+    };
+
+    await FirebaseFirestore.instance
+        .collection('teachers')
+        .doc(_emailController.text)
+        .set(teacherData);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Teacher account created successfully!'),
+      ),
+    );
+  }
+
+  void resetFields() {
+    // how to empty a text controller's value, hoow to wempty textfield using a controller
+    _emailController.text = '';
+    _passwordController.text = '';
+    _confirmPasswordController.text = '';
+    _idController.text = '';
+    _nameController.text = '';
+    _phoneController.text = '';
+    _cgpaController.text = '';
+    _registrationController.text = '';
+
+    allCourses = allCourses
+        .map((e) => {'subject': e['subject'], 'isSelected': false})
+        .toList();
+    _selectedCourses.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Account Creation'),
+        title: const Text('Admin Panel'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -195,6 +251,7 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
                       isSelected: [_isStudent, !_isStudent],
                       onPressed: (int index) {
                         setState(() {
+                          resetFields();
                           _isStudent = index == 0;
                         });
                       },
@@ -209,18 +266,15 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
                         ),
                       ],
                     ),
-                    const Text('account'),
+                    const Text('  account '),
+                    const SizedBox(width: 30),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, "/alot");
+                      },
+                      child: const Text('Course Allotment'),
+                    ),
                   ],
-                ),
-                TextFormField(
-                  controller: _idController,
-                  decoration: const InputDecoration(labelText: 'ID'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter ID';
-                    }
-                    return null;
-                  },
                 ),
                 TextFormField(
                   controller: _nameController,
@@ -270,65 +324,54 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
                       return null;
                     },
                   ),
-                const SizedBox(height: 16.0),
-                if (_isStudent)
-                  const Text(
-                    'Courses',
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                if (_isStudent)
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _selectedCourses.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      String course = _selectedCourses[index];
-                      if (index >= 3 && !_isStudent) {
-                        return const SizedBox
-                            .shrink(); // Hide the input fields after the third course for admin
+                if (!_isStudent)
+                  TextFormField(
+                    controller: _idController,
+                    decoration: const InputDecoration(labelText: 'Faculty ID'),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter ID';
                       }
-                      return Column(
-                        children: [
-                          const SizedBox(height: 16.0),
-                          Text(
-                            'Course ${index + 1}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          CheckboxListTile(
-                            title: Text(course),
-                            value: true,
-                            onChanged: null,
-                            // (bool? value) null,{
-                            //   setState(() {
-                            //     if (value!) {
-                            //       _selectedCourses.add(course);
-                            //     } else {
-                            //       _selectedCourses.remove(course);
-                            //     }
-                            //   });
-                            // },
-                          ),
-                          TextFormField(
-                            decoration:
-                                const InputDecoration(labelText: 'Grade'),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Please enter a grade';
-                              }
-                              return null;
-                            },
-                            onChanged: (value) {
-                              setState(() {
-                                courseGrades[course] = value;
-                              });
-                            },
-                          ),
-                        ],
-                      );
+                      return null;
                     },
                   ),
+                const SizedBox(height: 16.0),
+                const Text(
+                  'Courses',
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: allCourses.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    String course = allCourses[index]['subject'];
+
+                    return Column(
+                      // mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16.0),
+                        Text(
+                          'Course ${index + 1}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        CheckboxListTile(
+                          title: Text(course),
+                          value: allCourses[index]['isSelected'],
+                          onChanged: (bool? value) {
+                            setState(() {
+                              allCourses[index]['isSelected'] =
+                                  !allCourses[index]['isSelected'];
+                            });
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
                 const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: _submitForm,
@@ -342,9 +385,3 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
     );
   }
 }
-
-// void main() {
-//   runApp(const MaterialApp(
-//     home: AccountCreationScreen(),
-//   ));
-// }

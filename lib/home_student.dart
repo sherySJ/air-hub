@@ -1,4 +1,4 @@
-// ignore_for_file: no_leading_underscores_for_local_identifiers, unnecessary_import
+// ignore_for_file: no_leading_underscores_for_local_identifiers, unnecessary_import, non_constant_identifier_names, non_constant_identifier_names, must_be_immutable, duplicate_ignore, avoid_print
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +6,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class S extends StatefulWidget {
-  const S({super.key});
+  String FacultyID;
+  String phone;
+  String email;
+
+  S(
+      {super.key,
+      required this.FacultyID,
+      required this.phone,
+      required this.email});
 
   @override
   State<S> createState() => _SState();
@@ -16,6 +24,58 @@ class _SState extends State<S> {
   late User? _currentUser;
   late CollectionReference _studentsCollection;
   late Stream<DocumentSnapshot<Map<String, dynamic>>> _userDocumentStream;
+  late List<Subject> data = [];
+
+  Future<void> displayStudentGrades() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('courses')
+        .where('student', isEqualTo: _currentUser?.email)
+        .get();
+
+    if (snapshot.docs.isEmpty) {
+      print('No courses found for the user');
+      return;
+    }
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final subject = data['subject'];
+      final grade = data['grade'];
+
+      print('Subject: $subject, Grade: $grade');
+    }
+  }
+
+  Future<List> fetchCourses(String stdRegistration, String facultyID) async {
+    List<dynamic> data = [];
+    try {
+      CollectionReference coursesCollection =
+          FirebaseFirestore.instance.collection('courses');
+
+      QuerySnapshot querySnapshot = await coursesCollection
+          .where('stdRegistration', isEqualTo: stdRegistration)
+          .where('facultyID', isEqualTo: facultyID)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        // Iterate over the query results
+        for (var doc in querySnapshot.docs) {
+          print('Course Document ID: ${doc.id}');
+          print('Course Data: ${doc.data()}');
+          dynamic d = doc.data();
+          d?['docid'] = doc.id;
+
+          data.add(d);
+        }
+      } else {
+        print('No courses found with the given criteria.');
+      }
+    } catch (e) {
+      print('Error fetching courses: $e');
+    }
+    return data;
+  }
+
+  
 
   @override
   void initState() {
@@ -23,7 +83,7 @@ class _SState extends State<S> {
     _currentUser = FirebaseAuth.instance.currentUser;
     _studentsCollection = FirebaseFirestore.instance.collection('students');
     _userDocumentStream = _currentUser != null
-        ? _studentsCollection.doc(_currentUser!.uid).snapshots()
+        ? _studentsCollection.doc(_currentUser!.email).snapshots()
             as Stream<DocumentSnapshot<Map<String, dynamic>>>
         : const Stream<DocumentSnapshot<Map<String, dynamic>>>.empty();
   }
@@ -167,16 +227,42 @@ class _SState extends State<S> {
               StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                 stream: _userDocumentStream,
                 builder: (
-                  BuildContext context,
-                  AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
-                      snapshot,
-                ) {
+                    BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot,
+                    ){
                   String _cgpa = '';
                   if (snapshot.hasData && snapshot.data!.exists) {
                     var userData = snapshot.data!.data();
-                    _cgpa = userData?['cgpa'] ?? 0.0;
+                    List<dynamic>? courses = userData?['courses'];
+                    if (courses != null && courses.isNotEmpty) {
+                      double totalGradePoints = 0;
+                      double totalCredits = 0;
+
+                      for (var course in courses) {
+                        String grade = course['grade'] ?? '';
+                        double credits = 1.0; // Assuming all subjects have 1 credit hour
+
+                        // Assign values to grades
+                        double gradeValue = 0.0;
+                        if (grade == 'A') {
+                          gradeValue = 3.5;
+                        } else if (grade == 'B') {
+                          gradeValue = 3.0;
+                        } else if (grade == 'C') {
+                          gradeValue = 2.5;
+                        }
+
+                        totalGradePoints += gradeValue * credits;
+                        totalCredits += credits;
+                      }
+
+                      if (totalCredits != 0) {
+                        double cgpa = totalGradePoints / totalCredits;
+                        _cgpa = cgpa.toStringAsFixed(2);
+                      }
+                    }
                   }
-                  return Row(
+               return   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
@@ -306,6 +392,7 @@ class _SState extends State<S> {
 
                                       return ListTile(
                                         title: Text(subject),
+                                        // subtitle: Text('Alotted'),
                                         subtitle: Text('Grade: $grade'),
                                       );
                                     },
@@ -386,4 +473,36 @@ class InfoCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class Subject {
+  String name;
+  String quiz1;
+  String quiz2;
+  String quiz3;
+  String assignment1;
+  String assignment2;
+  String assignment3;
+  String midExam;
+  String finalExam;
+  String project;
+  String facultyID;
+  String studentID;
+  String docID;
+
+  Subject({
+    required this.name,
+    required this.quiz1,
+    required this.quiz2,
+    required this.quiz3,
+    required this.assignment1,
+    required this.assignment2,
+    required this.assignment3,
+    required this.midExam,
+    required this.finalExam,
+    required this.project,
+    required this.facultyID,
+    required this.studentID,
+    required this.docID,
+  });
 }

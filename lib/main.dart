@@ -1,5 +1,6 @@
-// ignore_for_file: prefer_const_constructors, avoid_print
+// ignore_for_file: prefer_const_constructors, avoid_print, unused_import
 
+import 'package:air_hub/alot_course.dart';
 import 'package:air_hub/enter.dart';
 import 'package:air_hub/login_screen.dart';
 import 'package:air_hub/home_student.dart';
@@ -30,14 +31,12 @@ class MainApp extends StatelessWidget {
       // '/':(context) => Splash(),
       routes: {
         '/': (context) => LoginPage1(),
-        '/student': (context) => S(),
+        '/student': (context) => S(FacultyID: '', phone: '', email: ''),
         '/admin': (context) => AccountCreationScreen(),
         '/teacher': (context) => TeacherPage(),
-        '/manager': (context) => ManageTeacherPage(),
-        // '/': (context) => StudentSearchScreen(
-        //       studentId: '210893',
-        //       teacherId: '210893',
-        //     ),
+        '/alot': (context) => AlotCourseScreen(),
+        '/manager': (context) =>
+            ManageTeacherPage(FacultyID: '', phone: '', email: ''),
       },
     );
   }

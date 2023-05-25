@@ -1,10 +1,24 @@
+// ignore_for_file: non_constant_identifier_names, avoid_print, must_be_immutable
+
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 
 class ManageTeacherPage extends StatefulWidget {
-  const ManageTeacherPage({Key? key}) : super(key: key);
+  List<dynamic>? TeacherCoursesList;
+
+  String FacultyID;
+  String phone;
+  String email;
+
+  ManageTeacherPage(
+      {super.key,
+      required this.FacultyID,
+      required this.phone,
+      required this.email});
 
   @override
   State<ManageTeacherPage> createState() => _ManageTeacherPageState();
@@ -12,52 +26,56 @@ class ManageTeacherPage extends StatefulWidget {
 
 class _ManageTeacherPageState extends State<ManageTeacherPage> {
   String _teacherName = '';
-  String _facultyId = '';
-  String _phoneNo = '';
-  String _email = '';
+
+  String _rollNo = '';
   late List<Subject> _subjectsList = [];
 
-  Future<Map<String, dynamic>> fetchStudentData(
-      String registrationNumber) async {
-    // Implement the logic to fetch student data from Firebase using the registration number
-    // For example, you can query the Firebase collection and retrieve the document
-    // based on the registration number or email
+  Future<List> fetchCourses(String stdRegistration, String facultyID) async {
+    List<dynamic> data = [];
+    try {
+      CollectionReference coursesCollection =
+          FirebaseFirestore.instance.collection('courses');
 
-    // Replace the following dummy implementation with your actual code
+      QuerySnapshot querySnapshot = await coursesCollection
+          .where('stdRegistration', isEqualTo: stdRegistration)
+          .where('facultyID', isEqualTo: facultyID)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        // Iterate over the query results
+        for (var doc in querySnapshot.docs) {
+          print('Course Document ID: ${doc.id}');
+          print('Course Data: ${doc.data()}');
+          dynamic d = doc.data();
+          d?['docid'] = doc.id;
 
-    await Future.delayed(const Duration(
-        seconds: 2)); // Simulating a delay for demonstration purposes
+          data.add(d);
+        }
+      } else {
+        print('No courses found with the given criteria.');
+      }
+    } catch (e) {
+      print('Error fetching courses: $e');
+    }
+    return data;
+  }
 
-    // Return dummy student data
-    return {
-      'name': 'John Doe',
-      'courses': [
-        {
-          'name': 'Mathematics',
-          'quiz1': 80,
-          'quiz2': 90,
-          'quiz3': 75,
-          'assignment1': 85,
-          'assignment2': 92,
-          'assignment3': 80,
-          'midExam': 85,
-          'finalExam': 90,
-          'project': 85,
-        },
-        {
-          'name': 'Science',
-          'quiz1': 75,
-          'quiz2': 85,
-          'quiz3': 80,
-          'assignment1': 90,
-          'assignment2': 88,
-          'assignment3': 82,
-          'midExam': 87,
-          'finalExam': 92,
-          'project': 88,
-        },
-      ],
-    };
+  Future<void> UpdateStudentGrades() async {
+    for (Subject sub in _subjectsList) {
+      // I need to find the document with sub.
+      final ref =
+          FirebaseFirestore.instance.collection("courses").doc(sub.docID);
+      var data = {
+        'assignments': [sub.assignment1, sub.assignment2, sub.assignment3],
+        'quizzes': [
+          sub.quiz1,
+          sub.quiz2,
+          sub.quiz3,
+        ],
+        'exams': [sub.midExam, sub.finalExam],
+        'project': sub.project,
+      };
+      return ref.set(data, SetOptions(merge: true));
+    }
   }
 
   late User? _currentUser;
@@ -123,7 +141,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                 ) {
                   if (snapshot.hasData && snapshot.data!.exists) {
                     var userData = snapshot.data!.data();
-                    _facultyId = userData?['id'] ?? '';
+                    widget.FacultyID = userData?['id'] ?? '';
                   }
                   return Text.rich(
                     TextSpan(
@@ -136,7 +154,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                           ),
                         ),
                         TextSpan(
-                          text: _facultyId,
+                          text: widget.FacultyID,
                           style: const TextStyle(
                             fontSize: 16.0,
                             color: Color(0xFF8F8F8F),
@@ -157,7 +175,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                 ) {
                   if (snapshot.hasData && snapshot.data!.exists) {
                     var userData = snapshot.data!.data();
-                    _phoneNo = userData?['phone'] ?? '';
+                    widget.phone = userData?['phone'] ?? '';
                   }
                   return Text.rich(
                     TextSpan(
@@ -170,7 +188,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                           ),
                         ),
                         TextSpan(
-                          text: _phoneNo.toString(),
+                          text: widget.phone.toString(),
                           style: const TextStyle(
                             fontSize: 16.0,
                             color: Color(0xFF8F8F8F),
@@ -190,7 +208,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                 ) {
                   if (snapshot.hasData && snapshot.data!.exists) {
                     var userData = snapshot.data!.data();
-                    _email = userData?['email'] ?? '';
+                    widget.email = userData?['email'] ?? '';
                   }
                   return Text.rich(
                     TextSpan(
@@ -203,7 +221,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                           ),
                         ),
                         TextSpan(
-                          text: _email,
+                          text: widget.email,
                           style: const TextStyle(
                             fontSize: 16.0,
                             color: Color(0xFF8F8F8F),
@@ -220,8 +238,9 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                 children: [
                   TextField(
                     onChanged: (value) {
+                      log(value);
                       setState(() {
-                        _email = value;
+                        _rollNo = value;
                       });
                     },
                     keyboardType: TextInputType.number,
@@ -239,43 +258,61 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                   const SizedBox(height: 24.0),
                   ElevatedButton(
                     onPressed: () async {
-                      final studentData = await fetchStudentData(_email);
-                      final List<Subject> subjectsList = [];
+                      final studentData =
+                          await fetchCourses(_rollNo, widget.FacultyID);
+                      log(_rollNo);
+                      log(widget.FacultyID);
+                      log(studentData.toString());
 
-                      final List<Map<String, dynamic>> courses =
-                          studentData['courses'];
+                      List<Subject> subjectsList = [];
+                      try {
+                        for (final course in studentData) {
+                          log(course.runtimeType.toString());
+                          final String subjectName =
+                              course['subjectName'] ?? 'MC';
+                          final String quiz1 = course['quizzes'][0] ?? '0';
+                          final String quiz2 = course['quizzes'][1] ?? '0';
+                          final String quiz3 = course['quizzes'][2] ?? '0';
+                          final String assignment1 =
+                              course['assignments'][0] ?? '0';
+                          final String assignment2 =
+                              course['assignments'][1] ?? '0';
+                          final String assignment3 =
+                              course['assignments'][2] ?? '0';
+                          final String midExam = course['exams'][0] ?? '0';
+                          final String finalExam = course['exams'][1] ?? '0';
+                          final String project = course['project'] ?? '0';
+                          final String facultyID = course['facultyID'] ?? '';
+                          final String studentID =
+                              course['stdRegistration'] ?? '';
+                          final String docID = course['docid'] ?? '';
+                          final Subject subject = Subject(
+                            name: subjectName,
+                            quiz1: quiz1,
+                            quiz2: quiz2,
+                            quiz3: quiz3,
+                            assignment1: assignment1,
+                            assignment2: assignment2,
+                            assignment3: assignment3,
+                            midExam: midExam,
+                            finalExam: finalExam,
+                            project: project,
+                            facultyID: facultyID,
+                            studentID: studentID,
+                            docID: docID,
+                          );
 
-                      for (final course in courses) {
-                        final String subjectName = course['name'];
-                        final int quiz1 = course['quiz1'];
-                        final int quiz2 = course['quiz2'];
-                        final int quiz3 = course['quiz3'];
-                        final int assignment1 = course['assignment1'];
-                        final int assignment2 = course['assignment2'];
-                        final int assignment3 = course['assignment3'];
-                        final int midExam = course['midExam'];
-                        final int finalExam = course['finalExam'];
-                        final int project = course['project'];
-
-                        final Subject subject = Subject(
-                          name: subjectName,
-                          quiz1: quiz1,
-                          quiz2: quiz2,
-                          quiz3: quiz3,
-                          assignment1: assignment1,
-                          assignment2: assignment2,
-                          assignment3: assignment3,
-                          midExam: midExam,
-                          finalExam: finalExam,
-                          project: project,
-                        );
-
-                        subjectsList.add(subject);
+                          subjectsList.add(subject);
+                        }
+                      } catch (e) {
+                        log(e.toString());
                       }
 
-                      setState(() {
-                        _subjectsList = subjectsList;
-                      });
+                      setState(
+                        () {
+                          _subjectsList = subjectsList;
+                        },
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       shadowColor: Colors.transparent,
@@ -296,6 +333,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                       ),
                     ),
                   ),
+                  
                   const SizedBox(height: 16.0),
                   Container(
                     height: 300,
@@ -311,12 +349,34 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Result',
-                            style: TextStyle(
-                              fontSize: 18.0,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Result',
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  // Perform the update record action here
+                                  // This is just a placeholder
+                                  await UpdateStudentGrades();
+                                  // print('Record updated!');
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  shadowColor: Colors.transparent,
+                                  backgroundColor: const Color.fromRGBO(
+                                      66, 133, 244, 1), // Blue color
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                ),
+                                child: const Text('Update'),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 8.0),
                           Expanded(
@@ -393,8 +453,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                                 controller: quiz1Controller,
                                                 onChanged: (value) {
                                                   // Update the subject's quiz 1 marks
-                                                  subject.quiz1 =
-                                                      int.parse(value);
+                                                  subject.quiz1 = value;
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
@@ -409,8 +468,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                                 controller: quiz2Controller,
                                                 onChanged: (value) {
                                                   // Update the subject's quiz 2 marks
-                                                  subject.quiz2 =
-                                                      int.parse(value);
+                                                  subject.quiz2 = value;
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
@@ -425,8 +483,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                                 controller: quiz3Controller,
                                                 onChanged: (value) {
                                                   // Update the subject's quiz 3 marks
-                                                  subject.quiz3 =
-                                                      int.parse(value);
+                                                  subject.quiz3 = value;
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
@@ -454,8 +511,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                                     assignment1Controller,
                                                 onChanged: (value) {
                                                   // Update the subject's assignment 1 marks
-                                                  subject.assignment1 =
-                                                      int.parse(value);
+                                                  subject.assignment1 = value;
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
@@ -471,8 +527,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                                     assignment2Controller,
                                                 onChanged: (value) {
                                                   // Update the subject's assignment 2 marks
-                                                  subject.assignment2 =
-                                                      int.parse(value);
+                                                  subject.assignment2 = value;
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
@@ -488,8 +543,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                                     assignment3Controller,
                                                 onChanged: (value) {
                                                   // Update the subject's assignment 3 marks
-                                                  subject.assignment3 =
-                                                      int.parse(value);
+                                                  subject.assignment3 = value;
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
@@ -516,8 +570,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                                 controller: midExamController,
                                                 onChanged: (value) {
                                                   // Update the subject's mid exam marks
-                                                  subject.midExam =
-                                                      int.parse(value);
+                                                  subject.midExam = value;
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
@@ -532,8 +585,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                                 controller: finalExamController,
                                                 onChanged: (value) {
                                                   // Update the subject's final exam marks
-                                                  subject.finalExam =
-                                                      int.parse(value);
+                                                  subject.finalExam = value;
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
@@ -550,7 +602,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                                           controller: projectController,
                                           onChanged: (value) {
                                             // Update the subject's project marks
-                                            subject.project = int.parse(value);
+                                            subject.project = value;
                                           },
                                           keyboardType: TextInputType.number,
                                           decoration: const InputDecoration(
@@ -564,6 +616,7 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
                               },
                             ),
                           ),
+                       
                         ],
                       ),
                     ),
@@ -580,15 +633,18 @@ class _ManageTeacherPageState extends State<ManageTeacherPage> {
 
 class Subject {
   String name;
-  int quiz1;
-  int quiz2;
-  int quiz3;
-  int assignment1;
-  int assignment2;
-  int assignment3;
-  int midExam;
-  int finalExam;
-  int project;
+  String quiz1;
+  String quiz2;
+  String quiz3;
+  String assignment1;
+  String assignment2;
+  String assignment3;
+  String midExam;
+  String finalExam;
+  String project;
+  String facultyID;
+  String studentID;
+  String docID;
 
   Subject({
     required this.name,
@@ -601,5 +657,8 @@ class Subject {
     required this.midExam,
     required this.finalExam,
     required this.project,
+    required this.facultyID,
+    required this.studentID,
+    required this.docID,
   });
 }
